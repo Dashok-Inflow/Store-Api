@@ -1,11 +1,8 @@
 ﻿using Api.Data;
 using Api.ModelDto;
 using Api.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Net;
 
 namespace Api.Controllers
@@ -189,6 +186,55 @@ namespace Api.Controllers
                     IsSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
                     ErrorMessages = { "Что-то поломалось", ex.Message }
+                });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult<ResponseServer>> DeleteProductById(int id)
+        {
+            try
+            {
+                if(id <= 0)
+                {
+                    return BadRequest(new ResponseServer
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        ErrorMessages = { "Неверный id" }
+                    });
+                }
+                else
+                {
+                    Product productFromDb = await dbContext.Products.FindAsync(id);
+
+                    if(productFromDb == null)
+                    {
+                        return NotFound(new ResponseServer
+                        {
+                            IsSuccess = false,
+                            StatusCode = HttpStatusCode.NotFound,
+                            ErrorMessages = { "Продукт по данному id не найден" }
+                        });
+                    }
+
+                    dbContext.Products.Remove(productFromDb);
+                    await dbContext.SaveChangesAsync();
+
+                    return Ok(new ResponseServer
+                    {
+                        IsSuccess = true,
+                        StatusCode = HttpStatusCode.NoContent
+                    });
+                }
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new ResponseServer
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessages = { "Упс", ex.Message }
                 });
             }
         }
