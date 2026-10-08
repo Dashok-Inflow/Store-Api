@@ -8,6 +8,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddPostgreSqlDbContext(builder.Configuration);
 builder.Services.AddPostgreSqlIdentityContext();
+builder.Services.AddConfigureIdentityOption();
+builder.Services.AddJwtTokenGenerator();
 
 var app = builder.Build();
 app.MapControllers();
