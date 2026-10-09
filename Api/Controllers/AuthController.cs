@@ -2,6 +2,7 @@
 using Api.Data;
 using Api.ModelDto;
 using Api.Models;
+using Api.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,16 +16,19 @@ namespace Api.Controllers
     {
         private readonly UserManager<AppUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly JwtTokenGenerator jwtTokenGenerator;
 
         public AuthController(ApplicationDbContext dbContext, UserManager<AppUser> userManager, 
-            RoleManager<IdentityRole> roleManager) : base(dbContext)
+            RoleManager<IdentityRole> roleManager,
+            JwtTokenGenerator jwtTokenGenerator) : base(dbContext)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.jwtTokenGenerator = jwtTokenGenerator;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<ResponseServer>> Register([FromBody] RegisterRequestDto registerRequestDto)
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
             if (registerRequestDto == null)
             {
@@ -78,6 +82,38 @@ namespace Api.Controllers
             {
                 StatusCode = HttpStatusCode.OK,
                 Result = "Регитсрация завершена"
+            });
+        }
+
+        [HttpPost("Login")]
+        public async Task<ActionResult<ResponseServer>> Login(
+            [FromBody] LoginRequestDto loginRequestDto)
+        {
+            var userFromDb = await dbContext.AppUsers.FirstOrDefaultAsync(u =>
+            u.Email.ToLower() == loginRequestDto.Email.ToLower());
+
+            if (userFromDb == null ||
+                !await userManager.CheckPasswordAsync(userFromDb, loginRequestDto.Password))
+            {
+                return BadRequest(new ResponseServer
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessages = { "Такого пользователя нет" }
+                });
+            }
+
+            var roles = await userManager.GetRolesAsync(userFromDb);
+            var token = jwtTokenGenerator.GenerateJwtToken(userFromDb, roles);
+
+            return Ok(new ResponseServer
+            {
+                StatusCode = HttpStatusCode.OK,
+                Result = new LoginResponseDto
+                {
+                    Email = userFromDb.Email,
+                    Token = token,
+                }
             });
         }
     }
