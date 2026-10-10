@@ -1,0 +1,8 @@
+$kind: http-request
+name: Test 1
+url: http://localhost:5124/api/AuthTest/Test1
+method: GET
+headers:
+  Authorization: "{{bearer_token_13i4}}"
+examples: .resources/Test 1-1.resources/examples
+order: 3000

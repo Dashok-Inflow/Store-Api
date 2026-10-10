@@ -1,0 +1,6 @@
+$kind: http-request
+name: Login
+url: http://localhost:5124/api/Auth/Login
+method: POST
+examples: .resources/Login-1.resources/examples
+order: 2000

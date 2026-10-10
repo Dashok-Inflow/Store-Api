@@ -1,0 +1,11 @@
+$kind: http-request
+name: Test 2 Not Auth
+url: http://localhost:5124/api/AuthTest/Test2
+method: GET
+headers:
+  - key: Authorization
+    value: "{{bearer_token_13i4}}"
+    disabled: true
+    description: ""
+examples: .resources/Test 2 Not Auth-1.resources/examples
+order: 4000
